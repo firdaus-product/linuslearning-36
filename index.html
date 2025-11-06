@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ms-MY">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kemahiran Pemulihan: Operasi Asas Darab & Bahagi</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* === PEMBETULAN BOX-SIZING (KEKAL) === */
+    html { box-sizing: border-box; }
+    *, *::before, *::after { box-sizing: inherit; }
+    /* ============================ */
+    
+    .activity-card { min-height: 400px; }
+    
+    .number-card { transition: all .3s ease; cursor: pointer; }
+    .number-card:hover { transform: scale(1.05); }
+
+    .item-group {
+      border: 2px dashed #93c5fd; background-color: #eff6ff;
+      padding: 8px; margin: 4px; border-radius: 8px;
+      min-width: 60px; min-height: 60px;
+      display: inline-flex; flex-wrap: wrap;
+      align-items: center; justify-content: center;
+    }
+    .item-dot {
+      width: 20px; height: 20px;
+      border-radius: 50%; margin: 4px;
+    }
+
+    /* === GAYA GARIS NOMBOR === */
+    .number-line-container {
+      position: relative;
+      width: 100%;
+      height: 120px;
+      padding-top: 50px; /* Ruang untuk lengkok di atas */
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .number-line {
+      display: flex;
+      border-bottom: 3px solid #374151; /* gray-700 */
+      padding-bottom: 5px;
+      min-width: 600px;
+    }
+
+    /* === PEMBETULAN CSS PADA .tick === */
+    .tick {
+      position: relative; /* Perlu untuk pseudo-element ::before */
+      width: 30px; /* INI PENTING: PIXELS_PER_UNIT = 30 */
+      height: 10px;
+      /* DIBUANG: border-left: 2px solid #374151; */
+      text-align: center;
+      flex-shrink: 0;
+    }
+    /* DITAMBAH: Lukis garis di tengah menggunakan ::before */
+    .tick::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%; /* Letak di tengah */
+      transform: translateX(-50%); /* Selaraskan ke tengah */
+      width: 2px; /* Lebar garis */
+      height: 10px; /* Tinggi garis */
+      background-color: #374151; /* Warna garis */
+    }
+    .tick span {
+      position: absolute;
+      bottom: -30px;
+      left: 50%; /* Nombor juga di tengah */
+      transform: translateX(-50%); /* Selaraskan ke tengah */
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    /* === TAMAT PEMBETULAN CSS === */
+    
+    .arc {
+      position: absolute;
+      top: 20px; 
+      height: 30px;
+      border: 2px solid;
+      border-color: #f97316 #f97316 transparent transparent; /* orange-500 */
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+    .arc.bahagi {
+      border-color: #e11d48 #e11d48 transparent transparent; /* rose-600 */
+    }
+    .arc-label {
+      position: absolute;
+      top: -16px; 
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-purple-50 min-h-full">
+
+  <div class="bg-yellow-100 border-b-4 border-yellow-300 p-4 shadow-sm sticky top-0 z-10">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">📚</span>
+        <span id="info-text" class="text-lg font-semibold text-gray-800">
+          Pilih aktiviti untuk meneroka operasi darab dan bahagi!
+        </span>
+      </div>
+      <button id="speak-btn"
+              class="bg-yellow-300 hover:bg-yellow-400 text-yellow-800 font-bold py-2 px-4 rounded-full text-xl transition-colors duration-200"
+              onclick="speakInfo()">
+        🔊
+      </button>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto p-6">
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-6 activity-card flex items-center justify-center">
+      <div id="activity-content" class="text-center w-full">
+        <div class="py-16">
+          <div class="text-6xl mb-4">🧮</div>
+          <h2 class="text-3xl font-bold text-gray-800 mb-4">
+            Kemahiran Pemulihan: Operasi Asas Darab & Bahagi
+          </h2>
+          <p class="text-xl text-gray-600 mb-8">
+            Jom teroka konsep darab (kumpul) dan bahagi (agih) secara interaktif.
+          </p>
+          <div class="text-4xl">👇</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-lg p-6">
+      <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">Pilih Aktiviti</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+        <button onclick="loadActivity(1)"
+                class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg text-lg transition-colors duration-200">
+          📦 Kumpul-Kumpul (Darab)
+        </button>
+        <button onclick="loadActivity(2)"
+                class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg text-lg transition-colors duration-200">
+          🍪 Agih Biskut (Bahagi)
+        </button>
+        <button onclick="loadActivity(3)"
+                class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-4 rounded-lg text-lg transition-colors duration-200">
+          🧺 Kumpul Guli (Bahagi)
+        </button>
+        <button onclick="loadActivity(4)"
+                class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-lg text-lg transition-colors duration-200">
+          🐸 Lompat Katak (Darab)
+        </button>
+        <button onclick="loadActivity(5)"
+                class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg text-lg transition-colors duration-200">
+          🦗 Lompat Cengkerik (Bahagi)
+        </button>
+      </div>
+      <div class="flex justify-center gap-4">
+        <button onclick="clearActivity()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg text-lg transition-colors duration-200">
+          🧹 Bersih
+        </button>
+        <button onclick="nextActivity()" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg text-lg transition-colors duration-200">
+          ➡️ Seterusnya
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentActivity = 0;
+    let ttsEnabled = false;
+    let currentInfo = "Pilih aktiviti untuk meneroka operasi darab dan bahagi!";
+    // State untuk aktiviti (akan diset dalam loadActivity)
+    let activityState = {};
+    
+    /* ====== TTS (Kekal sama) ====== */
+    function speak(text) {
+      if (!ttsEnabled) return;
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      setTimeout(() => {
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'ms-MY';
+        u.rate = 0.9; u.pitch = 1.05;
+        const voices = window.speechSynthesis.getVoices();
+        const ms = voices.find(v => v.lang === 'ms-MY' || v.lang?.startsWith('ms'));
+        if (ms) u.voice = ms;
+        window.speechSynthesis.speak(u);
+      }, 100);
+    }
+    function setInfo(text) { currentInfo = text; document.getElementById('info-text').textContent = text; }
+    function speakInfo() {
+      if (!ttsEnabled) {
+        ttsEnabled = true;
+        const btn = document.getElementById('speak-btn');
+        btn.classList.add('bg-green-300', 'hover:bg-green-400');
+        btn.classList.remove('bg-yellow-300', 'hover:bg-yellow-400');
+      }
+      speak(currentInfo);
+    }
+
+    /* ====== Router ====== */
+    function loadActivity(n) {
+      currentActivity = n;
+      // KOSONGKAN STATE SETIAP KALI TUKAR AKTIVITI
+      activityState = {}; 
+      const content = document.getElementById('activity-content');
+      if (n === 1) return loadKumpulActivity(content);
+      if (n === 2) return loadAgihActivity(content);
+      if (n === 3) return loadKumpulGuliActivity(content);
+      if (n === 4) return loadLompatDarabActivity_STEP(content);
+      if (n === 5) return loadLompatBahagiActivity_STEP(content);
+    }
+    
+    /* --- Aktiviti 1: Kumpul-Kumpul (Darab) (Kekal sama) --- */
+    function loadKumpulActivity(content) {
+      setInfo("Pilih bilangan 'Kumpulan' dan 'Ahli' untuk melihat konsep darab.");
+      content.innerHTML = `
+        <h3 class="text-2xl font-bold text-blue-600 mb-6">📦 Aktiviti Kumpul-Kumpul (Darab)</h3>
+        <p class="text-lg text-gray-700 mb-4">Darab ialah <strong class="text-blue-700">penambahan berulang</strong>.</p>
+        <div class="flex flex-wrap justify-center items-center gap-4 mb-6 p-4 bg-blue-50 rounded-lg">
+          <label class="font-semibold text-lg">Berapa Kumpulan?</label>
+          <select id="act1-kumpulan" class="p-2 rounded-md border-2 border-blue-300 text-lg">
+            <option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option>
+          </select>
+          <label class="font-semibold text-lg">Berapa Ahli setiap kumpulan?</label>
+          <select id="act1-ahli" class="p-2 rounded-md border-2 border-blue-300 text-lg">
+            <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="10">10</option>
+          </select>
+          <button onclick="runKumpul()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg text-lg">Jalankan</button>
+        </div>
+        <div id="act1-visual" class="p-4 bg-gray-50 rounded-lg min-h-40"></div>
+        <div id="act1-summary" class="mt-4 text-xl font-bold text-gray-800"></div>
+      `;
+    }
+    function runKumpul() {
+      const kumpulan = parseInt(document.getElementById('act1-kumpulan').value);
+      const ahli = parseInt(document.getElementById('act1-ahli').value);
+      const total = kumpulan * ahli;
+      const visualEl = document.getElementById('act1-visual');
+      const summaryEl = document.getElementById('act1-summary');
+      visualEl.innerHTML = ''; let additionString = '';
+      for (let i = 0; i < kumpulan; i++) {
+        let groupHtml = '<div class="item-group">';
+        for (let j = 0; j < ahli; j++) {
+          groupHtml += '<div class="item-dot bg-blue-500"></div>';
+        }
+        groupHtml += '</div>';
+        visualEl.innerHTML += groupHtml;
+        additionString += (i > 0 ? ' + ' : '') + ahli;
+      }
+      const summaryText = `<p>${kumpulan} kumpulan ${ahli}-${ahli}.</p><p class="text-gray-600 text-lg mt-2">Penambahan Berulang: ${additionString} = ${total}</p><p class="text-blue-700 mt-1">Ayat Matematik Darab: ${kumpulan} x ${ahli} = ${total}</p>`;
+      summaryEl.innerHTML = summaryText;
+      const infoMsg = `Ini ${kumpulan} kumpulan ${ahli}-${ahli}. Jumlahnya ${total}.`;
+      setInfo(infoMsg); speak(infoMsg);
+    }
+
+    /* --- Aktiviti 2: Agih Biskut (Bahagi - Pengagihan) (Kekal sama) --- */
+    function loadAgihActivity(content) {
+      setInfo("Pilih 'Jumlah Biskut' dan 'Bilangan Kawan' untuk diagihkan.");
+      content.innerHTML = `
+        <h3 class="text-2xl font-bold text-green-600 mb-6">🍪 Agih Biskut (Bahagi: Pengagihan)</h3>
+        <p class="text-lg text-gray-700 mb-4">Bahagi ialah <strong class="text-green-700">mengagih sama rata</strong>.</p>
+        <div class="flex flex-wrap justify-center items-center gap-4 mb-6 p-4 bg-green-50 rounded-lg">
+          <label class="font-semibold text-lg">Jumlah Biskut:</label>
+          <select id="act2-total" class="p-2 rounded-md border-2 border-green-300 text-lg">
+            <option value="6">6</option><option value="8">8</option><option value="10">10</option><option value="12" selected>12</option>
+          </select>
+          <label class="font-semibold text-lg">Bilangan Kawan:</label>
+          <select id="act2-groups" class="p-2 rounded-md border-2 border-green-300 text-lg">
+            <option value="2">2</option><option value="3" selected>3</option><option value="4">4</option>
+          </select>
+          <button onclick="runAgih()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg text-lg">Agih</button>
+        </div>
+        <div id="act2-visual" class="p-4 bg-gray-50 rounded-lg min-h-40 flex flex-wrap justify-around"></div>
+        <div id="act2-summary" class="mt-4 text-xl font-bold text-gray-800"></div>
+      `;
+    }
+    function runAgih() {
+      const total = parseInt(document.getElementById('act2-total').value);
+      const groups = parseInt(document.getElementById('act2-groups').value);
+      const perGroup = total / groups;
+      if (total % groups !== 0) {
+        const msg = "Sila pilih nombor yang boleh diagih sama rata (tiada baki).";
+        setInfo(msg); speak(msg);
+        document.getElementById('act2-summary').innerHTML = `<p class="text-red-500">${msg}</p>`;
+        document.getElementById('act2-visual').innerHTML = '';
+        return;
+      }
+      const visualEl = document.getElementById('act2-visual');
+      visualEl.innerHTML = '';
+      for (let i = 0; i < groups; i++) {
+        let groupHtml = `<div class="item-group border-green-300 bg-green-50 flex-col p-4"><span class="text-4xl">🧑‍</span><span class="font-semibold text-gray-700">Kawan ${i + 1}</span><div class="mt-2">`;
+        for (let j = 0; j < perGroup; j++) {
+          groupHtml += '<div class="item-dot bg-green-500" title="biskut"></div>';
+        }
+        groupHtml += '</div></div>';
+        visualEl.innerHTML += groupHtml;
+      }
+      const summaryText = `<p>${total} biskut diagih kepada ${groups} kawan.</p><p class="text-gray-600 text-lg mt-2">Setiap kawan dapat ${perGroup} biskut.</p><p class="text-green-700 mt-1">Ayat Matematik Bahagi: ${total} ÷ ${groups} = ${perGroup}</p>`;
+      document.getElementById('act2-summary').innerHTML = summaryText;
+      const infoMsg = `${total} bahagi ${groups} sama dengan ${perGroup}.`;
+      setInfo(infoMsg); speak(infoMsg);
+    }
+
+    /* --- Aktiviti 3: Kumpul Guli (Bahagi - Pengumpulan) (Kekal sama) --- */
+    function loadKumpulGuliActivity(content) {
+      setInfo("Pilih 'Jumlah Guli' dan 'Saiz Kumpulan' untuk dikumpulkan.");
+      content.innerHTML = `
+        <h3 class="text-2xl font-bold text-purple-600 mb-6">🧺 Kumpul Guli (Bahagi: Pengumpulan)</h3>
+        <p class="text-lg text-gray-700 mb-4">Bahagi juga ialah <strong class="text-purple-700">mengumpul dalam bilangan tertentu</strong>.</p>
+        <div class="flex flex-wrap justify-center items-center gap-4 mb-6 p-4 bg-purple-50 rounded-lg">
+          <label class="font-semibold text-lg">Jumlah Guli:</label>
+          <select id="act3-total" class="p-2 rounded-md border-2 border-purple-300 text-lg">
+            <option value="10">10</option><option value="15" selected>15</option><option value="20">20</option>
+          </select>
+          <label class="font-semibold text-lg">Saiz Kumpulan (Kumpul):</label>
+          <select id="act3-size" class="p-2 rounded-md border-2 border-purple-300 text-lg">
+            <option value="2">2-2</option><option value="3">3-3</option><option value="5" selected>5-5</option>
+          </select>
+          <button onclick="runKumpulGuli()" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-6 rounded-lg text-lg">Kumpul</button>
+        </div>
+        <div id="act3-visual" class="p-4 bg-gray-50 rounded-lg min-h-40 flex flex-wrap justify-center"></div>
+        <div id="act3-summary" class="mt-4 text-xl font-bold text-gray-800"></div>
+      `;
+    }
+    function runKumpulGuli() {
+      const total = parseInt(document.getElementById('act3-total').value);
+      const size = parseInt(document.getElementById('act3-size').value);
+      if (total % size !== 0) {
+        const msg = "Sila pilih nombor yang boleh dikumpul penuh (tiada baki).";
+        setInfo(msg); speak(msg);
+        document.getElementById('act3-summary').innerHTML = `<p class="text-red-500">${msg}</p>`;
+        document.getElementById('act3-visual').innerHTML = '';
+        return;
+      }
+      const numGroups = total / size;
+      const visualEl = document.getElementById('act3-visual');
+      visualEl.innerHTML = '';
+      for (let i = 0; i < numGroups; i++) {
+        let groupHtml = `<div class="item-group border-purple-300 bg-purple-50" title="Bakul ${i + 1}">`;
+        for (let j = 0; j < size; j++) {
+          groupHtml += '<div class="item-dot bg-purple-500"></div>';
+        }
+        groupHtml += '</div>';
+        visualEl.innerHTML += groupHtml;
+      }
+      const summaryText = `<p>${total} guli dikumpul ${size}-${size}.</p><p class="text-gray-600 text-lg mt-2">Kita dapat ${numGroups} kumpulan (bakul).</p><p class="text-purple-700 mt-1">Ayat Matematik Bahagi: ${total} ÷ ${size} = ${numGroups}</p>`;
+      document.getElementById('act3-summary').innerHTML = summaryText;
+      const infoMsg = `${total} dikumpul ${size}-${size}, dapat ${numGroups} kumpulan.`;
+      setInfo(infoMsg); speak(infoMsg);
+    }
+    
+    /* --- Aktiviti 4: Lompat Katak (Interaktif) (Kekal sama) --- */
+    function loadLompatDarabActivity_STEP(content) {
+      setInfo("Pilih saiz lompatan dan klik 'Lompat!'");
+      const maxNum = 30; // Garis nombor sehingga 30
+      const PIXELS_PER_UNIT = 30; // Lebar 1 tick
+      
+      // Bina garis nombor statik
+      let lineHtml = '<div class="number-line" style="min-width: ' + (maxNum * PIXELS_PER_UNIT + PIXELS_PER_UNIT) + 'px;">';
+      for (let i = 0; i <= maxNum; i++) {
+        lineHtml += `<div class="tick"><span>${i}</span></div>`;
+      }
+      lineHtml += '</div>';
+
+      content.innerHTML = `
+        <h3 class="text-2xl font-bold text-orange-600 mb-6">🐸 Lompat Katak (Darab)</h3>
+        <div class="flex flex-wrap justify-center items-center gap-4 mb-6 p-4 bg-orange-50 rounded-lg">
+          <label class="font-semibold text-lg">Berapa Lompatan?</label>
+          <select id="act4-lompat" class="p-2 rounded-md border-2 border-orange-300 text-lg">
+            <option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option>
+          </select>
+          <label class="font-semibold text-lg">Saiz 1 Lompatan (langkah):</label>
+          <select id="act4-saiz" class="p-2 rounded-md border-2 border-orange-300 text-lg">
+            <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option>
+          </select>
+          <button onclick="runKatakLompat()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg text-lg">Lompat! 🐸</button>
+          <button onclick="resetKatak(true)" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg text-lg">Reset</button>
+        </div>
+        <div class="p-4 bg-gray-50 rounded-lg overflow-x-auto">
+          <div id="nl-darab-container" class="number-line-container">
+            ${lineHtml}
+            <div id="nl-darab-arcs"></div> <div id="nl-katak-jumper" style="position: absolute; top: 10px; font-size: 2rem; transition: left 0.5s ease; left: 5px;">🐸</div>
+          </div>
+        </div>
+        <div id="act4-summary" class="mt-4 text-xl font-bold text-gray-800 text-center">Pilih nombor dan tekan 'Lompat!'.</div>
+      `;
+      resetKatak(false); // Panggil reset untuk mula
+    }
+
+    // Fungsi Reset untuk Katak
+    function resetKatak(speakMsg = true) {
+      const lompatMax = parseInt(document.getElementById('act4-lompat').value);
+      const saiz = parseInt(document.getElementById('act4-saiz').value);
+      // Simpan state semasa
+      activityState = { pos: 0, count: 0, saiz: saiz, lompatMax: lompatMax };
+      
+      document.getElementById('nl-katak-jumper').style.left = '5px'; // Posisi mula (tengah tick 0)
+      document.getElementById('nl-darab-arcs').innerHTML = ''; // Buang lengkok lama
+      document.getElementById('act4-summary').innerHTML = `<p>${lompatMax} lompatan ${saiz}-${saiz}.</p><p class="text-orange-700 mt-1">0 x ${saiz} = 0</p>`;
+      
+      if (speakMsg) {
+        const msg = `Reset. Katak akan buat ${lompatMax} lompatan bersaiz ${saiz}.`;
+        setInfo(msg); speak(msg);
+      }
+    }
+
+    // Fungsi 'Lompat!' untuk Katak
+    function runKatakLompat() {
+      const PIXELS_PER_UNIT = 30; // Lebar tick
+      let { pos, count, saiz, lompatMax } = activityState; // Ambil state semasa
+
+      if (count >= lompatMax) {
+        const msg = "Katak dah habis lompat. Tekan 'Reset' untuk cuba lagi.";
+        setInfo(msg); speak(msg);
+        return;
+      }
+
+      const countNew = count + 1;
+      const newPos = countNew * saiz;
+      const oldPos = pos;
+      
+      // Gerakkan Katak
+      document.getElementById('nl-katak-jumper').style.left = (newPos * PIXELS_PER_UNIT) + 5 + 'px';
+
+      // Lukis Arc
+      const arcContainer = document.getElementById('nl-darab-arcs');
+      const arc = document.createElement('div');
+      arc.className = 'arc';
+      arc.style.left = (oldPos * PIXELS_PER_UNIT) + 'px';
+      arc.style.width = (saiz * PIXELS_PER_UNIT) + 'px';
+      arc.style.height = (30 + count * 3) + 'px'; // Lengkok makin tinggi
+      arc.innerHTML = `<span class="arc-label" style="color: #f97316;">+${saiz}</span>`;
+      arcContainer.appendChild(arc);
+
+      // Kemas kini Teks
+      const summaryText = `<p>${countNew} lompatan ${saiz} langkah.</p><p class="text-orange-700 mt-1">${countNew} x ${saiz} = ${newPos}</p>`;
+      document.getElementById('act4-summary').innerHTML = summaryText;
+      
+      // Simpan state baru
+      activityState = { pos: newPos, count: countNew, saiz: saiz, lompatMax: lompatMax };
+
+      const infoMsg = `Lompatan ${countNew}! ${countNew} darab ${saiz} ialah ${newPos}.`;
+      setInfo(infoMsg); speak(infoMsg);
+    }
+    
+    /* --- Aktiviti 5: Lompat Cengkerik (Interaktif) (Kekal sama) --- */
+    function loadLompatBahagiActivity_STEP(content) {
+      setInfo("Pilih nombor 'Mula' dan saiz lompatan, kemudian klik 'Lompat!'");
+      const maxNum = 30; // Garis nombor sehingga 30
+      const PIXELS_PER_UNIT = 30; // Lebar 1 tick
+      
+      let lineHtml = '<div class="number-line" style="min-width: ' + (maxNum * PIXELS_PER_UNIT + PIXELS_PER_UNIT) + 'px;">';
+      for (let i = 0; i <= maxNum; i++) {
+        lineHtml += `<div class="tick"><span>${i}</span></div>`;
+      }
+      lineHtml += '</div>';
+
+      content.innerHTML = `
+        <h3 class="text-2xl font-bold text-red-600 mb-6">🦗 Lompat Cengkerik (Bahagi)</h3>
+        <div class="flex flex-wrap justify-center items-center gap-4 mb-6 p-4 bg-red-50 rounded-lg">
+          <label class="font-semibold text-lg">Mula di Nombor:</label>
+          <select id="act5-mula" class="p-2 rounded-md border-2 border-red-300 text-lg">
+            <option value="12" selected>12</option><option value="15">15</option><option value="18">18</option><option value="20">20</option>
+          </select>
+          <label class="font-semibold text-lg">Lompat ke belakang (langkah):</label>
+          <select id="act5-saiz" class="p-2 rounded-md border-2 border-red-300 text-lg">
+            <option value="2">2-2</option><option value="3" selected>3-3</option><option value="4">4-4</option><option value="5">5-5</option>
+          </select>
+          <button onclick="runCengkerikLompat()" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg text-lg">Lompat! 🦗</button>
+          <button onclick="resetCengkerik(true)" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg text-lg">Reset</button>
+        </div>
+        <div class="p-4 bg-gray-50 rounded-lg overflow-x-auto">
+          <div id="nl-bahagi-container" class="number-line-container">
+            ${lineHtml}
+            <div id="nl-bahagi-arcs"></div> <div id="nl-cengkerik-jumper" style="position: absolute; top: 10px; font-size: 2rem; transition: left 0.5s ease; left: 5px;">🦗</div>
+          </div>
+        </div>
+        <div id="act5-summary" class="mt-4 text-xl font-bold text-gray-800 text-center">Pilih nombor dan tekan 'Lompat!'.</div>
+      `;
+      resetCengkerik(false); // Panggil reset untuk mula
+    }
+
+    // Fungsi Reset untuk Cengkerik
+    function resetCengkerik(speakMsg = true) {
+      const mula = parseInt(document.getElementById('act5-mula').value);
+      const saiz = parseInt(document.getElementById('act5-saiz').value);
+      const PIXELS_PER_UNIT = 30;
+
+      // Semak jika ada baki
+      if (mula % saiz !== 0) {
+        const msg = "Sila pilih nombor yang boleh dilompat sehingga sifar (tiada baki).";
+        setInfo(msg); speak(msg);
+        document.getElementById('act5-summary').innerHTML = `<p class="text-red-500">${msg}</p>`;
+        activityState = { error: true }; // Set error state
+        return;
+      }
+
+      // Simpan state semasa
+      activityState = { pos: mula, count: 0, saiz: saiz, mula: mula, error: false };
+      
+      // Letak cengkerik di tempat mula
+      document.getElementById('nl-cengkerik-jumper').style.left = (mula * PIXELS_PER_UNIT) + 5 + 'px';
+      document.getElementById('nl-bahagi-arcs').innerHTML = ''; // Buang lengkok lama
+      document.getElementById('act5-summary').innerHTML = `<p>Mula di ${mula}, lompat ke belakang ${saiz}-${saiz}.</p><p class="text-red-700 mt-1">${mula} ÷ ${saiz} = ?</p>`;
+      
+      if (speakMsg) {
+        const msg = `Reset. Cengkerik mula di ${mula}, lompat ke belakang ${saiz}-${saiz}.`;
+        setInfo(msg); speak(msg);
+      }
+    }
+
+    // Fungsi 'Lompat!' untuk Cengkerik
+    function runCengkerikLompat() {
+      // Jangan jalan jika state ada error (baki tidak sifar)
+      if (activityState.error) {
+        const msg = "Pilihan tidak sah. Sila 'Reset' dan pilih nombor lain.";
+        setInfo(msg); speak(msg);
+        return;
+      }
+      
+      const PIXELS_PER_UNIT = 30;
+      let { pos, count, saiz, mula } = activityState; // Ambil state semasa
+
+      if (pos <= 0) {
+        const msg = `Cengkerik dah sampai sifar! ${mula} bahagi ${saiz} ialah ${count}. Tekan 'Reset'.`;
+        setInfo(msg); speak(msg);
+        return;
+      }
+
+      const countNew = count + 1;
+      const newPos = pos - saiz;
+      const oldPos = pos;
+      
+      // Gerakkan Cengkerik
+      document.getElementById('nl-cengkerik-jumper').style.left = (newPos * PIXELS_PER_UNIT) + 5 + 'px';
+
+      // Lukis Arc
+      const arcContainer = document.getElementById('nl-bahagi-arcs');
+      const arc = document.createElement('div');
+      arc.className = 'arc bahagi'; // Guna kelas 'bahagi' untuk warna merah
+      arc.style.left = (newPos * PIXELS_PER_UNIT) + 'px'; // Mula di tempat baru
+      arc.style.width = (saiz * PIXELS_PER_UNIT) + 'px'; // Lebar arc
+      arc.style.height = (30 + count * 3) + 'px';
+      arc.innerHTML = `<span class="arc-label" style="color: #e11d48;">-${saiz}</span>`;
+      arcContainer.appendChild(arc);
+
+      // Kemas kini Teks
+      let summaryText = `<p>Lompatan ke-${countNew}. Mendarat di ${newPos}.</p>`;
+      if (newPos === 0) {
+            summaryText += `<p class="text-red-700 mt-1">Selesai! ${mula} ÷ ${saiz} = ${countNew}</p>`;
+      } else {
+            summaryText += `<p class="text-gray-600 mt-1">...lompat lagi...</p>`;
+      }
+      document.getElementById('act5-summary').innerHTML = summaryText;
+      
+      // Simpan state baru
+      activityState = { pos: newPos, count: countNew, saiz: saiz, mula: mula };
+
+      const infoMsg = `Lompatan ${countNew} ke belakang! Sampai di ${newPos}.`;
+      setInfo(infoMsg); speak(infoMsg);
+    }
+
+    /* ====== Kawalan Umum (Kekal sama) ====== */
+    function clearActivity() {
+      currentActivity = 0;
+      document.getElementById('activity-content').innerHTML = `
+        <div class="text-center py-16">
+          <div class="text-6xl mb-4">🧮</div>
+          <h2 class="text-3xl font-bold text-gray-800 mb-4">Kemahiran Pemulihan: Operasi Asas Darab & Bahagi</h2>
+          <p class="text-xl text-gray-600 mb-8">Pilih aktiviti di bawah untuk meneroka konsep darab dan bahagi.</p>
+          <div class="text-4xl">👇</div>
+        </div>
+      `;
+      setInfo("Pilih aktiviti untuk mula belajar!");
+    }
+    function nextActivity() {
+      if (currentActivity === 0) return loadActivity(1);
+      if (currentActivity < 5) return loadActivity(currentActivity + 1);
+      return loadActivity(1);
+    }
+    if ('speechSynthesis' in window) {
+      setInterval(() => { if (window.speechSynthesis.paused) window.speechSynthesis.resume(); }, 1000);
+    }
+  </script>
+</body>
+</html>
