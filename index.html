@@ -1,589 +1,672 @@
 <!DOCTYPE html>
-<html lang="ms-MY">
+<html lang="ms-MY" class="overflow-hidden overscroll-none">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Matematik Ceria: Darab & Bahagi</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Matematik Ceria: Darab & Bahagi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-  <style>
-    /* --- UI STYLE (MASTER REFERENCE - TEMA HIJAU) --- */
-    body { 
-        font-family: 'Fredoka', sans-serif; 
-        background-color: #f0fdf4; 
-        background-image: radial-gradient(#86efac 2px, transparent 2px); 
-        background-size: 30px 30px; 
-    }
-    
-    .game-card { 
-        background: white; 
-        border: 4px solid #475569; 
-        box-shadow: 8px 8px 0px #00000020; 
-        border-radius: 1.5rem; 
-        min-height: 600px; 
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        overflow: hidden; /* Penting untuk garis nombor tidak pecah layout */
-    }
-    
-    /* Buttons */
-    .btn-3d { 
-        transition: all 0.1s; 
-        border-bottom-width: 6px; 
-        border-color: rgba(0,0,0,0.2); 
-        transform: translateY(0); 
-        cursor: pointer; 
-        display: inline-block; 
-    }
-    .btn-3d:active:not(:disabled) { transform: translateY(4px); border-bottom-width: 2px; box-shadow: none; }
-    .btn-3d:disabled { opacity: 0.6; cursor: not-allowed; border-bottom-width: 6px; filter: grayscale(100%); }
+    <style>
+        /* --- UI STYLE (MASTER REFERENCE - TEMA HIJAU) --- */
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #f0fdf4;
+            background-image: radial-gradient(#86efac 2px, transparent 2px);
+            background-size: 30px 30px;
+        }
 
-    /* Input Select Styles (Supaya selaras dengan tema) */
-    .select-3d {
-        border: 3px solid #cbd5e1;
-        border-radius: 0.75rem;
-        padding: 0.5rem 1rem;
-        font-family: 'Fredoka', sans-serif;
-        font-weight: bold;
-        color: #334155;
-        background-color: #f8fafc;
-        cursor: pointer;
-    }
-    .select-3d:focus { outline: none; border-color: #3b82f6; }
+        .game-card {
+            background: white;
+            border: 4px solid #475569;
+            box-shadow: 8px 8px 0px #00000020;
+            border-radius: 1.5rem;
+            /* min-height: 600px; REMOVED */
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            overflow: hidden;
+            /* Penting untuk garis nombor tidak pecah layout */
+        }
 
-    /* --- STYLE KHUSUS DARAB & BAHAGI --- */
+        /* Buttons */
+        .btn-3d {
+            transition: all 0.1s;
+            border-bottom-width: 6px;
+            border-color: rgba(0, 0, 0, 0.2);
+            transform: translateY(0);
+            cursor: pointer;
+            display: inline-block;
+        }
 
-    /* Item Groups (Dots) */
-    .item-group {
-      border: 3px dashed #93c5fd; background-color: #eff6ff;
-      padding: 10px; margin: 6px; border-radius: 1rem;
-      min-width: 70px; min-height: 70px;
-      display: inline-flex; flex-wrap: wrap;
-      align-items: center; justify-content: center;
-      box-shadow: 4px 4px 0 #e2e8f0;
-    }
-    .item-dot {
-      width: 24px; height: 24px;
-      border-radius: 50%; margin: 4px;
-      border: 2px solid rgba(0,0,0,0.1);
-    }
+        .btn-3d:active:not(:disabled) {
+            transform: translateY(4px);
+            border-bottom-width: 2px;
+            box-shadow: none;
+        }
 
-    /* Garis Nombor (Number Line) */
-    .number-line-container {
-      position: relative;
-      width: 100%;
-      height: 140px;
-      padding-top: 60px;
-      overflow-x: auto; /* Scrollable jika panjang */
-      white-space: nowrap;
-      padding-bottom: 20px; /* Ruang scrollbar */
-    }
-    /* Custom Scrollbar untuk Number Line */
-    .number-line-container::-webkit-scrollbar { height: 8px; }
-    .number-line-container::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
-    .number-line-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .btn-3d:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            border-bottom-width: 6px;
+            filter: grayscale(100%);
+        }
 
-    .number-line {
-      display: flex;
-      border-bottom: 4px solid #475569;
-      padding-bottom: 5px;
-      min-width: 950px; /* Pastikan cukup panjang */
-      margin: 0 20px;
-    }
+        /* Input Select Styles (Supaya selaras dengan tema) */
+        .select-3d {
+            border: 3px solid #cbd5e1;
+            border-radius: 0.75rem;
+            padding: 0.5rem 1rem;
+            font-family: 'Fredoka', sans-serif;
+            font-weight: bold;
+            color: #334155;
+            background-color: #f8fafc;
+            cursor: pointer;
+        }
 
-    .tick {
-      position: relative;
-      width: 30px; /* PIXELS_PER_UNIT */
-      height: 15px;
-      flex-shrink: 0;
-    }
-    .tick::before {
-      content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-      width: 3px; height: 15px; background-color: #475569; border-radius: 2px;
-    }
-    .tick span {
-      position: absolute; bottom: -35px; left: 50%; transform: translateX(-50%);
-      font-size: 1rem; font-weight: bold; color: #64748b;
-    }
+        .select-3d:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
 
-    /* Lengkok (Arc) */
-    .arc {
-      position: absolute; top: 30px; 
-      border: 3px solid;
-      border-color: #f97316 #f97316 transparent transparent; 
-      border-radius: 50%; transition: all 0.3s ease;
-      z-index: 5;
-    }
-    .arc.bahagi { border-color: #e11d48 #e11d48 transparent transparent; }
-    .arc-label {
-      position: absolute; top: -25px; left: 50%; transform: translateX(-50%);
-      font-size: 0.9rem; font-weight: 800; background: white; padding: 0 4px; border-radius: 4px;
-    }
+        /* --- STYLE KHUSUS DARAB & BAHAGI --- */
 
-  </style>
+        /* Item Groups (Dots) */
+        .item-group {
+            border: 3px dashed #93c5fd;
+            background-color: #eff6ff;
+            padding: 5px;
+            margin: 4px;
+            border-radius: 0.75rem;
+            min-width: 50px;
+            min-height: 50px;
+            display: inline-flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 4px 4px 0 #e2e8f0;
+        }
+
+        .item-dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            margin: 2px;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+        }
+
+        /* Garis Nombor (Number Line) */
+        .number-line-container {
+            position: relative;
+            width: 100%;
+            height: 100px;
+            padding-top: 40px;
+            overflow-x: auto;
+            /* Scrollable jika panjang */
+            white-space: nowrap;
+            padding-bottom: 20px;
+            /* Ruang scrollbar */
+        }
+
+        /* Custom Scrollbar untuk Number Line */
+        .number-line-container::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .number-line-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        .number-line-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .number-line {
+            display: flex;
+            border-bottom: 4px solid #475569;
+            padding-bottom: 5px;
+            min-width: 950px;
+            /* Pastikan cukup panjang */
+            margin: 0 20px;
+        }
+
+        .tick {
+            position: relative;
+            width: 30px;
+            /* PIXELS_PER_UNIT */
+            height: 15px;
+            flex-shrink: 0;
+        }
+
+        .tick::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3px;
+            height: 15px;
+            background-color: #475569;
+            border-radius: 2px;
+        }
+
+        .tick span {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #64748b;
+        }
+
+        /* Lengkok (Arc) */
+        .arc {
+            position: absolute;
+            top: 20px;
+            border: 3px solid;
+            border-color: #f97316 #f97316 transparent transparent;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            z-index: 5;
+        }
+
+        .arc.bahagi {
+            border-color: #e11d48 #e11d48 transparent transparent;
+        }
+
+        .arc-label {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            font-weight: 800;
+            background: white;
+            padding: 0 4px;
+            border-radius: 4px;
+        }
+    </style>
 </head>
-<body class="min-h-screen text-slate-800 pb-10">
 
-  <div class="fixed top-4 left-0 right-0 z-50 px-4 pointer-events-none">
-    <div class="max-w-4xl mx-auto bg-green-400 border-4 border-green-600 rounded-full px-6 py-3 shadow-xl flex items-center justify-between pointer-events-auto transform hover:scale-[1.01] transition-transform">
-      <div class="flex items-center gap-3">
-        <span class="text-3xl animate-bounce">🧮</span>
-        <span id="info-text" class="text-xl font-bold text-green-900 leading-none mt-1">Operasi Asas: Darab & Bahagi</span>
-      </div>
-      <button id="speak-btn" onclick="speakInfo()" class="bg-white hover:bg-green-50 text-green-600 border-2 border-green-200 rounded-full p-2 transition-colors shadow-sm">🔊</button>
+<body class="h-screen w-screen overflow-hidden text-slate-800 flex flex-col overscroll-none">
+
+    <div class="flex-none p-4 z-50 pointer-events-none w-full">
+        <div
+            class="max-w-4xl mx-auto bg-green-400 border-4 border-green-600 rounded-full px-4 py-2 shadow-xl flex items-center justify-between pointer-events-auto transform hover:scale-[1.01] transition-transform">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl animate-bounce">🧮</span>
+                <span id="info-text" class="text-lg font-bold text-green-900 leading-none mt-1">Operasi Asas: Darab &
+                    Bahagi</span>
+            </div>
+            <button id="speak-btn" onclick="speakInfo()"
+                class="bg-white hover:bg-green-50 text-green-600 border-2 border-green-200 rounded-full p-2 transition-colors shadow-sm">🔊</button>
+        </div>
     </div>
-  </div>
-  <div class="h-24"></div>
 
-  <div class="max-w-6xl mx-auto p-4">
-    
-    <div class="game-card p-4 mb-8">
-        <div id="activity-content" class="w-full h-full relative z-10 flex flex-col items-center justify-center">
-            <div class="py-10 text-center">
-                <div class="text-8xl mb-6 animate-pulse">✖️➗</div>
-                <h2 class="text-5xl font-bold text-emerald-600 mb-4">Darab & Bahagi</h2>
-                <p class="text-2xl text-slate-500 mb-8 font-semibold">Teroka konsep kumpul, agih, dan lompat!</p>
-                <div class="text-4xl animate-bounce">👇</div>
+    <div class="flex-1 w-full max-w-5xl mx-auto p-2 flex flex-col min-h-0">
+
+        <div class="game-card p-4 mb-2 flex-1 w-full">
+            <div id="activity-content"
+                class="w-full h-full relative z-10 flex flex-col items-center justify-center transition-opacity duration-200">
+                <div class="py-10 text-center">
+                    <div class="text-8xl mb-6 animate-pulse">✖️➗</div>
+                    <h2 class="text-4xl md:text-5xl font-bold text-emerald-600 mb-4">Darab & Bahagi</h2>
+                    <p class="text-lg text-slate-500 mb-8 font-semibold">Teroka konsep kumpul, agih, dan lompat!</p>
+                    <div class="text-4xl animate-bounce">👇</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-none bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg p-2 border-2 border-white">
+            <h3 class="text-lg font-bold text-slate-700 mb-1 text-center">🎮 Pilih Aktiviti</h3>
+
+            <div class="grid grid-cols-5 gap-2 mb-2">
+                <button onclick="loadActivity(1)"
+                    class="btn-3d bg-blue-500 text-white font-bold py-2 rounded-xl text-xs">📦<br>Kumpul</button>
+                <button onclick="loadActivity(2)"
+                    class="btn-3d bg-green-500 text-white font-bold py-2 rounded-xl text-xs">🍪<br>Agih</button>
+                <button onclick="loadActivity(3)"
+                    class="btn-3d bg-purple-500 text-white font-bold py-2 rounded-xl text-xs">🧺<br>Guli</button>
+                <button onclick="loadActivity(4)"
+                    class="btn-3d bg-orange-500 text-white font-bold py-2 rounded-xl text-xs">🐸<br>Katak</button>
+                <button onclick="loadActivity(5)"
+                    class="btn-3d bg-rose-500 text-white font-bold py-2 rounded-xl text-xs">🦗<br>Cengkerik</button>
+            </div>
+
+            <div class="flex justify-center gap-4 border-t-2 border-slate-100 pt-2">
+                <button onclick="clearActivity()"
+                    class="btn-3d bg-slate-400 text-white font-bold py-1 px-4 rounded-full text-base">🏠 Menu</button>
+                <button onclick="nextActivity()"
+                    class="btn-3d bg-indigo-500 text-white font-bold py-1 px-6 rounded-full text-lg">Seterusnya
+                    ➡️</button>
             </div>
         </div>
     </div>
 
-    <div class="bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg p-6 border-2 border-white">
-      <h3 class="text-2xl font-bold text-slate-700 mb-4 text-center">🎮 Pilih Aktiviti</h3>
-      
-      <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-        <button onclick="loadActivity(1)" class="btn-3d bg-blue-500 text-white font-bold py-4 px-2 rounded-xl text-lg">📦 Kumpul (Darab)</button>
-        <button onclick="loadActivity(2)" class="btn-3d bg-green-500 text-white font-bold py-4 px-2 rounded-xl text-lg">🍪 Agih (Bahagi)</button>
-        <button onclick="loadActivity(3)" class="btn-3d bg-purple-500 text-white font-bold py-4 px-2 rounded-xl text-lg">🧺 Guli (Bahagi)</button>
-        <button onclick="loadActivity(4)" class="btn-3d bg-orange-500 text-white font-bold py-4 px-2 rounded-xl text-lg">🐸 Katak (Darab)</button>
-        <button onclick="loadActivity(5)" class="btn-3d bg-rose-500 text-white font-bold py-4 px-2 rounded-xl text-lg">🦗 Cengkerik (Bahagi)</button>
-      </div>
+    <script>
+        /* --- STANDARD HELPERS (Sama mcm Master Reference) --- */
+        let currentActivity = 0;
+        let ttsEnabled = false;
+        let currentInfo = "Pilih aktiviti untuk mula!";
+        let activityState = {}; // Untuk simpan state katak/cengkerik
 
-      <div class="flex justify-center gap-4 border-t-2 border-slate-100 pt-6">
-        <button onclick="clearActivity()" class="btn-3d bg-slate-400 text-white font-bold py-2 px-6 rounded-full text-lg">🏠 Menu</button>
-        <button onclick="nextActivity()" class="btn-3d bg-indigo-500 text-white font-bold py-2 px-8 rounded-full text-xl">Seterusnya ➡️</button>
-      </div>
-    </div>
-  </div>
+        function triggerWin() { confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } }); }
 
-  <script>
-    /* --- STANDARD HELPERS (Sama mcm Master Reference) --- */
-    let currentActivity = 0;
-    let ttsEnabled = false;
-    let currentInfo = "Pilih aktiviti untuk mula!";
-    let activityState = {}; // Untuk simpan state katak/cengkerik
+        function speak(text) {
+            if (!ttsEnabled || !('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(text); u.lang = 'ms-MY'; u.rate = 0.95; u.pitch = 1.05;
+            const ms = window.speechSynthesis.getVoices().find(v => v.lang === 'ms-MY' || v.lang?.startsWith('ms'));
+            if (ms) u.voice = ms;
+            window.speechSynthesis.speak(u);
+        }
 
-    function triggerWin() { confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } }); }
+        function setInfo(text) {
+            currentInfo = text; const infoEl = document.getElementById('info-text');
+            infoEl.style.opacity = 0; setTimeout(() => { infoEl.textContent = text; infoEl.style.opacity = 1; }, 200);
+        }
 
-    function speak(text) { 
-        if (!ttsEnabled || !('speechSynthesis' in window)) return; 
-        window.speechSynthesis.cancel(); 
-        const u = new SpeechSynthesisUtterance(text); u.lang = 'ms-MY'; u.rate = 0.95; u.pitch = 1.05; 
-        const ms = window.speechSynthesis.getVoices().find(v => v.lang === 'ms-MY' || v.lang?.startsWith('ms')); 
-        if (ms) u.voice = ms; 
-        window.speechSynthesis.speak(u); 
-    }
-    
-    function setInfo(text) { 
-        currentInfo = text; const infoEl = document.getElementById('info-text'); 
-        infoEl.style.opacity = 0; setTimeout(() => { infoEl.textContent = text; infoEl.style.opacity = 1; }, 200); 
-    }
-    
-    function speakInfo() { 
-        if (!ttsEnabled) { ttsEnabled = true; document.getElementById('speak-btn').classList.add('bg-green-100', 'text-green-600'); } 
-        speak(currentInfo); 
-    }
+        function speakInfo() {
+            if (!ttsEnabled) { ttsEnabled = true; document.getElementById('speak-btn').classList.add('bg-green-100', 'text-green-600'); }
+            speak(currentInfo);
+        }
 
-    /* --- ROUTER --- */
-    function loadActivity(n) {
-      currentActivity = n;
-      activityState = {}; // Reset state
-      const content = document.getElementById('activity-content');
-      content.style.opacity = 0;
-      setTimeout(() => {
-          content.classList.remove('items-center', 'justify-center'); // Reset layout alignment standard
-          if (n === 1) loadKumpulActivity(content);
-          if (n === 2) loadAgihActivity(content);
-          if (n === 3) loadKumpulGuliActivity(content);
-          if (n === 4) loadLompatDarabActivity(content);
-          if (n === 5) loadLompatBahagiActivity(content);
-          content.style.opacity = 1;
-      }, 200);
-    }
+        /* --- ROUTER --- */
+        function loadActivity(n) {
+            currentActivity = n;
+            activityState = {}; // Reset state
+            const content = document.getElementById('activity-content');
+            content.style.opacity = 0;
+            setTimeout(() => {
+                content.classList.remove('items-center', 'justify-center'); // Reset layout alignment standard
+                if (n === 1) loadKumpulActivity(content);
+                if (n === 2) loadAgihActivity(content);
+                if (n === 3) loadKumpulGuliActivity(content);
+                if (n === 4) loadLompatDarabActivity(content);
+                if (n === 5) loadLompatBahagiActivity(content);
+                content.style.opacity = 1;
+            }, 200);
+        }
 
-    function clearActivity() {
-        currentActivity = 0;
-        const content = document.getElementById('activity-content');
-        content.innerHTML = `<div class="py-10 text-center"><div class="text-8xl mb-6 animate-pulse">✖️➗</div><h2 class="text-5xl font-bold text-emerald-600 mb-4">Darab & Bahagi</h2><p class="text-2xl text-slate-500 mb-8 font-semibold">Pilih butang di bawah.</p></div>`;
-        content.classList.add('items-center', 'justify-center');
-        setInfo("Pilih aktiviti untuk mula!");
-    }
-    function nextActivity() { let next = currentActivity + 1; if (next > 5) next = 1; loadActivity(next); }
+        function clearActivity() {
+            currentActivity = 0;
+            const content = document.getElementById('activity-content');
+            content.innerHTML = `<div class="py-10 text-center"><div class="text-8xl mb-6 animate-pulse">✖️➗</div><h2 class="text-5xl font-bold text-emerald-600 mb-4">Darab & Bahagi</h2><p class="text-2xl text-slate-500 mb-8 font-semibold">Pilih butang di bawah.</p></div>`;
+            content.classList.add('items-center', 'justify-center');
+            setInfo("Pilih aktiviti untuk mula!");
+        }
+        function nextActivity() { let next = currentActivity + 1; if (next > 5) next = 1; loadActivity(next); }
 
 
-    /* =========================================
-       LOGIK AKTIVITI (DIPINDAHKAN DARI KOD ANDA)
-       ========================================= */
+        /* =========================================
+           LOGIK AKTIVITI (DIPINDAHKAN DARI KOD ANDA)
+           ========================================= */
 
-    /* 1. Kumpul (Darab) */
-    function loadKumpulActivity(content) {
-        setInfo("Pilih nombor, kemudian tekan 'Jalankan'.");
-        content.innerHTML = `
-            <div class="w-full max-w-4xl mx-auto text-center">
-                <h3 class="text-3xl font-bold text-blue-500 mb-2">📦 Konsep Kumpul (Darab)</h3>
-                <p class="text-slate-500 mb-6">Darab ialah <strong class="text-blue-600">penambahan berulang</strong>.</p>
+        /* 1. Kumpul (Darab) */
+        function loadKumpulActivity(content) {
+            setInfo("Pilih nombor, kemudian tekan 'Jalankan'.");
+            content.innerHTML = `
+            <div class="w-full max-w-4xl mx-auto text-center flex flex-col h-full overflow-hidden">
+                <h3 class="text-xl font-bold text-blue-500 mb-2 flex-none">📦 Konsep Kumpul (Darab)</h3>
                 
-                <div class="bg-blue-50 p-6 rounded-2xl border-2 border-blue-100 inline-flex flex-wrap gap-4 items-center justify-center mb-8 shadow-inner">
+                <div class="bg-blue-50 p-2 rounded-2xl border-2 border-blue-100 flex flex-wrap gap-2 items-center justify-center mb-2 shadow-inner flex-none">
                     <div class="text-left">
-                        <label class="block text-sm font-bold text-blue-400 uppercase mb-1">Kumpulan</label>
-                        <select id="act1-kumpulan" class="select-3d border-blue-300 text-blue-700">
-                            <option value="2">2 Kumpulan</option><option value="3" selected>3 Kumpulan</option><option value="4">4 Kumpulan</option><option value="5">5 Kumpulan</option>
+                        <label class="block text-xs font-bold text-blue-400 uppercase mb-1">Kumpul</label>
+                        <select id="act1-kumpulan" class="select-3d border-blue-300 text-blue-700 text-sm py-1">
+                            <option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option>
                         </select>
                     </div>
-                    <div class="text-3xl text-blue-300">×</div>
+                    <div class="text-xl text-blue-300">×</div>
                     <div class="text-left">
-                        <label class="block text-sm font-bold text-blue-400 uppercase mb-1">Ahli</label>
-                        <select id="act1-ahli" class="select-3d border-blue-300 text-blue-700">
-                            <option value="2">2 Ahli</option><option value="3">3 Ahli</option><option value="4" selected>4 Ahli</option><option value="5">5 Ahli</option>
+                        <label class="block text-xs font-bold text-blue-400 uppercase mb-1">Ahli</label>
+                        <select id="act1-ahli" class="select-3d border-blue-300 text-blue-700 text-sm py-1">
+                            <option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option>
                         </select>
                     </div>
-                    <button onclick="runKumpul()" class="btn-3d bg-blue-500 text-white font-bold py-3 px-6 rounded-xl ml-4">Jalankan ▶️</button>
+                    <button onclick="runKumpul()" class="btn-3d bg-blue-500 text-white font-bold py-2 px-4 rounded-xl ml-2 text-sm">Jalankan ▶️</button>
                 </div>
 
-                <div id="act1-visual" class="flex flex-wrap justify-center gap-4 min-h-[100px] mb-6"></div>
-                <div id="act1-summary" class="text-2xl font-bold text-slate-700 bg-white p-4 rounded-xl border border-slate-200 inline-block">...</div>
+                <div class="flex-1 w-full overflow-y-auto min-h-0 bg-white/50 rounded-xl border border-blue-100 p-2 relative">
+                    <div id="act1-visual" class="flex flex-wrap justify-center gap-2"></div>
+                </div>
+                <div id="act1-summary" class="text-lg font-bold text-slate-700 bg-white p-2 rounded-xl border border-slate-200 mt-2 flex-none">...</div>
             </div>
         `;
-    }
-
-    function runKumpul() {
-        const kumpulan = parseInt(document.getElementById('act1-kumpulan').value);
-        const ahli = parseInt(document.getElementById('act1-ahli').value);
-        const total = kumpulan * ahli;
-        
-        const visualEl = document.getElementById('act1-visual');
-        visualEl.innerHTML = ''; 
-        let additionString = '';
-        
-        for (let i = 0; i < kumpulan; i++) {
-            let groupHtml = '<div class="item-group border-blue-300 bg-blue-50">';
-            for (let j = 0; j < ahli; j++) {
-                groupHtml += '<div class="item-dot bg-blue-500"></div>';
-            }
-            groupHtml += '</div>';
-            visualEl.innerHTML += groupHtml;
-            additionString += (i > 0 ? ' + ' : '') + ahli;
         }
-        
-        document.getElementById('act1-summary').innerHTML = `
+
+        function runKumpul() {
+            const kumpulan = parseInt(document.getElementById('act1-kumpulan').value);
+            const ahli = parseInt(document.getElementById('act1-ahli').value);
+            const total = kumpulan * ahli;
+
+            const visualEl = document.getElementById('act1-visual');
+            visualEl.innerHTML = '';
+            let additionString = '';
+
+            for (let i = 0; i < kumpulan; i++) {
+                let groupHtml = '<div class="item-group border-blue-300 bg-blue-50">';
+                for (let j = 0; j < ahli; j++) {
+                    groupHtml += '<div class="item-dot bg-blue-500"></div>';
+                }
+                groupHtml += '</div>';
+                visualEl.innerHTML += groupHtml;
+                additionString += (i > 0 ? ' + ' : '') + ahli;
+            }
+
+            document.getElementById('act1-summary').innerHTML = `
             <span class="text-slate-400 text-lg block mb-1">Penambahan Berulang: ${additionString} = ${total}</span>
             <span class="text-blue-600 text-3xl">${kumpulan} × ${ahli} = ${total}</span>
         `;
-        speak(`Ini ${kumpulan} kumpulan, setiap satu ada ${ahli}. Jumlahnya ${total}.`);
-        triggerWin();
-    }
+            speak(`Ini ${kumpulan} kumpulan, setiap satu ada ${ahli}. Jumlahnya ${total}.`);
+            triggerWin();
+        }
 
-    /* 2. Agih (Bahagi) */
-    function loadAgihActivity(content) {
-        setInfo("Agihkan biskut kepada kawan.");
-        content.innerHTML = `
-            <div class="w-full max-w-4xl mx-auto text-center">
-                <h3 class="text-3xl font-bold text-green-500 mb-2">🍪 Konsep Agih (Bahagi)</h3>
-                <p class="text-slate-500 mb-6">Bahagi ialah <strong class="text-green-600">mengagih sama rata</strong>.</p>
+        /* 2. Agih (Bahagi) */
+        function loadAgihActivity(content) {
+            setInfo("Agihkan biskut kepada kawan.");
+            content.innerHTML = `
+            <div class="w-full max-w-4xl mx-auto text-center flex flex-col h-full overflow-hidden">
+                <h3 class="text-xl font-bold text-green-500 mb-2 flex-none">🍪 Konsep Agih (Bahagi)</h3>
                 
-                <div class="bg-green-50 p-6 rounded-2xl border-2 border-green-100 inline-flex flex-wrap gap-4 items-center justify-center mb-8 shadow-inner">
+                <div class="bg-green-50 p-2 rounded-2xl border-2 border-green-100 flex flex-wrap gap-2 items-center justify-center mb-2 shadow-inner flex-none">
                     <div class="text-left">
-                        <label class="block text-sm font-bold text-green-400 uppercase mb-1">Jumlah Biskut</label>
-                        <select id="act2-total" class="select-3d border-green-300 text-green-700">
-                            <option value="6">6 Biskut</option><option value="8">8 Biskut</option><option value="10">10 Biskut</option><option value="12" selected>12 Biskut</option>
+                        <label class="block text-xs font-bold text-green-400 uppercase mb-1">Jumlah</label>
+                        <select id="act2-total" class="select-3d border-green-300 text-green-700 text-sm py-1">
+                            <option value="6">6</option><option value="8">8</option><option value="10">10</option><option value="12" selected>12</option>
                         </select>
                     </div>
-                    <div class="text-3xl text-green-300">÷</div>
+                    <div class="text-xl text-green-300">÷</div>
                     <div class="text-left">
-                        <label class="block text-sm font-bold text-green-400 uppercase mb-1">Bil. Kawan</label>
-                        <select id="act2-groups" class="select-3d border-green-300 text-green-700">
-                            <option value="2">2 Kawan</option><option value="3" selected>3 Kawan</option><option value="4">4 Kawan</option>
+                        <label class="block text-xs font-bold text-green-400 uppercase mb-1">Kawan</label>
+                        <select id="act2-groups" class="select-3d border-green-300 text-green-700 text-sm py-1">
+                            <option value="2">2</option><option value="3" selected>3</option><option value="4">4</option>
                         </select>
                     </div>
-                    <button onclick="runAgih()" class="btn-3d bg-green-500 text-white font-bold py-3 px-6 rounded-xl ml-4">Agih 🍪</button>
+                    <button onclick="runAgih()" class="btn-3d bg-green-500 text-white font-bold py-2 px-4 rounded-xl ml-2 text-sm">Agih 🍪</button>
                 </div>
 
-                <div id="act2-visual" class="flex flex-wrap justify-center gap-4 min-h-[100px] mb-6"></div>
-                <div id="act2-summary" class="text-2xl font-bold text-slate-700 bg-white p-4 rounded-xl border border-slate-200 inline-block">...</div>
+                <div class="flex-1 w-full overflow-y-auto min-h-0 bg-white/50 rounded-xl border border-green-100 p-2 relative">
+                    <div id="act2-visual" class="flex flex-wrap justify-center gap-2"></div>
+                </div>
+                <div id="act2-summary" class="text-lg font-bold text-slate-700 bg-white p-2 rounded-xl border border-slate-200 mt-2 flex-none">...</div>
             </div>
         `;
-    }
-
-    function runAgih() {
-        const total = parseInt(document.getElementById('act2-total').value);
-        const groups = parseInt(document.getElementById('act2-groups').value);
-        
-        if (total % groups !== 0) {
-            speak("Nombor ini tak boleh diagih sama rata. Pilih nombor lain.");
-            document.getElementById('act2-summary').innerHTML = `<span class="text-red-500 text-lg">Baki wujud! Pilih nombor lain.</span>`;
-            return;
         }
 
-        const perGroup = total / groups;
-        const visualEl = document.getElementById('act2-visual');
-        visualEl.innerHTML = '';
+        function runAgih() {
+            const total = parseInt(document.getElementById('act2-total').value);
+            const groups = parseInt(document.getElementById('act2-groups').value);
 
-        for (let i = 0; i < groups; i++) {
-            let groupHtml = `<div class="item-group border-green-400 bg-green-50 flex flex-col w-32">
-                <span class="text-3xl mb-2">🧑‍🤝‍🧑</span>
-                <span class="text-xs font-bold text-green-600 mb-2">Kawan ${i+1}</span>
-                <div class="flex flex-wrap justify-center">`;
-            for (let j = 0; j < perGroup; j++) {
-                groupHtml += '<div class="item-dot bg-orange-400 border-orange-600"></div>'; // Biskut color
+            if (total % groups !== 0) {
+                speak("Nombor ini tak boleh diagih sama rata. Pilih nombor lain.");
+                document.getElementById('act2-summary').innerHTML = `<span class="text-red-500 text-lg">Baki wujud! Pilih nombor lain.</span>`;
+                return;
             }
-            groupHtml += '</div></div>';
-            visualEl.innerHTML += groupHtml;
-        }
 
-        document.getElementById('act2-summary').innerHTML = `
+            const perGroup = total / groups;
+            const visualEl = document.getElementById('act2-visual');
+            visualEl.innerHTML = '';
+
+            for (let i = 0; i < groups; i++) {
+                let groupHtml = `<div class="item-group border-green-400 bg-green-50 flex flex-col w-32">
+                <span class="text-3xl mb-2">🧑‍🤝‍🧑</span>
+                <span class="text-xs font-bold text-green-600 mb-2">Kawan ${i + 1}</span>
+                <div class="flex flex-wrap justify-center">`;
+                for (let j = 0; j < perGroup; j++) {
+                    groupHtml += '<div class="item-dot bg-orange-400 border-orange-600"></div>'; // Biskut color
+                }
+                groupHtml += '</div></div>';
+                visualEl.innerHTML += groupHtml;
+            }
+
+            document.getElementById('act2-summary').innerHTML = `
             <span class="text-slate-400 text-lg block mb-1">Setiap kawan dapat ${perGroup} biskut.</span>
             <span class="text-green-600 text-3xl">${total} ÷ ${groups} = ${perGroup}</span>
         `;
-        speak(`${total} biskut diagih kepada ${groups} kawan. Setiap orang dapat ${perGroup}.`);
-        triggerWin();
-    }
+            speak(`${total} biskut diagih kepada ${groups} kawan. Setiap orang dapat ${perGroup}.`);
+            triggerWin();
+        }
 
-    /* 3. Kumpul Guli (Bahagi - Pengumpulan) */
-    function loadKumpulGuliActivity(content) {
-        setInfo("Masukkan guli ke dalam bakul.");
-        content.innerHTML = `
-            <div class="w-full max-w-4xl mx-auto text-center">
-                <h3 class="text-3xl font-bold text-purple-500 mb-2">🧺 Kumpul Guli (Bahagi)</h3>
-                <p class="text-slate-500 mb-6">Berapa kumpulan yang kita dapat?</p>
+        /* 3. Kumpul Guli (Bahagi - Pengumpulan) */
+        function loadKumpulGuliActivity(content) {
+            setInfo("Masukkan guli ke dalam bakul.");
+            content.innerHTML = `
+            <div class="w-full max-w-4xl mx-auto text-center flex flex-col h-full overflow-hidden">
+                <h3 class="text-xl font-bold text-purple-500 mb-2 flex-none">🧺 Kumpul Guli (Bahagi)</h3>
                 
-                <div class="bg-purple-50 p-6 rounded-2xl border-2 border-purple-100 inline-flex flex-wrap gap-4 items-center justify-center mb-8 shadow-inner">
+                <div class="bg-purple-50 p-2 rounded-2xl border-2 border-purple-100 flex flex-wrap gap-2 items-center justify-center mb-2 shadow-inner flex-none">
                     <div class="text-left">
-                        <label class="block text-sm font-bold text-purple-400 uppercase mb-1">Jumlah Guli</label>
-                        <select id="act3-total" class="select-3d border-purple-300 text-purple-700">
-                            <option value="10">10 Guli</option><option value="15" selected>15 Guli</option><option value="20">20 Guli</option>
+                        <label class="block text-xs font-bold text-purple-400 uppercase mb-1">Jumlah</label>
+                        <select id="act3-total" class="select-3d border-purple-300 text-purple-700 text-sm py-1">
+                            <option value="10">10</option><option value="15" selected>15</option><option value="20">20</option>
                         </select>
                     </div>
                     <div class="text-left">
-                        <label class="block text-sm font-bold text-purple-400 uppercase mb-1">Satu Bakul Isi</label>
-                        <select id="act3-size" class="select-3d border-purple-300 text-purple-700">
-                            <option value="2">2 Biji</option><option value="3">3 Biji</option><option value="5" selected>5 Biji</option>
+                        <label class="block text-xs font-bold text-purple-400 uppercase mb-1">Saiz</label>
+                        <select id="act3-size" class="select-3d border-purple-300 text-purple-700 text-sm py-1">
+                            <option value="2">2</option><option value="3">3</option><option value="5" selected>5</option>
                         </select>
                     </div>
-                    <button onclick="runKumpulGuli()" class="btn-3d bg-purple-500 text-white font-bold py-3 px-6 rounded-xl ml-4">Masuk Bakul 🧺</button>
+                    <button onclick="runKumpulGuli()" class="btn-3d bg-purple-500 text-white font-bold py-2 px-4 rounded-xl ml-2 text-sm">Masuk Bakul 🧺</button>
                 </div>
 
-                <div id="act3-visual" class="flex flex-wrap justify-center gap-4 min-h-[100px] mb-6"></div>
-                <div id="act3-summary" class="text-2xl font-bold text-slate-700 bg-white p-4 rounded-xl border border-slate-200 inline-block">...</div>
+                <div class="flex-1 w-full overflow-y-auto min-h-0 bg-white/50 rounded-xl border border-purple-100 p-2 relative">
+                    <div id="act3-visual" class="flex flex-wrap justify-center gap-2"></div>
+                </div>
+                <div id="act3-summary" class="text-lg font-bold text-slate-700 bg-white p-2 rounded-xl border border-slate-200 mt-2 flex-none">...</div>
             </div>
         `;
-    }
-
-    function runKumpulGuli() {
-        const total = parseInt(document.getElementById('act3-total').value);
-        const size = parseInt(document.getElementById('act3-size').value);
-
-        if (total % size !== 0) {
-            speak("Guli tak cukup untuk bakul terakhir.");
-            document.getElementById('act3-summary').innerHTML = `<span class="text-red-500 text-lg">Ada baki guli! Pilih nombor lain.</span>`;
-            return;
         }
 
-        const numGroups = total / size;
-        const visualEl = document.getElementById('act3-visual');
-        visualEl.innerHTML = '';
+        function runKumpulGuli() {
+            const total = parseInt(document.getElementById('act3-total').value);
+            const size = parseInt(document.getElementById('act3-size').value);
 
-        for (let i = 0; i < numGroups; i++) {
-            let groupHtml = `<div class="item-group border-purple-400 bg-purple-50 flex flex-col justify-center relative pt-6">
-                <span class="absolute top-0 left-0 bg-purple-200 text-purple-800 text-xs px-2 py-1 rounded-br-lg font-bold">Bakul ${i+1}</span>
-                <div class="flex flex-wrap justify-center gap-1">`;
-            for (let j = 0; j < size; j++) {
-                groupHtml += '<div class="item-dot bg-purple-600"></div>';
+            if (total % size !== 0) {
+                speak("Guli tak cukup untuk bakul terakhir.");
+                document.getElementById('act3-summary').innerHTML = `<span class="text-red-500 text-lg">Ada baki guli! Pilih nombor lain.</span>`;
+                return;
             }
-            groupHtml += '</div></div>';
-            visualEl.innerHTML += groupHtml;
-        }
 
-        document.getElementById('act3-summary').innerHTML = `
+            const numGroups = total / size;
+            const visualEl = document.getElementById('act3-visual');
+            visualEl.innerHTML = '';
+
+            for (let i = 0; i < numGroups; i++) {
+                let groupHtml = `<div class="item-group border-purple-400 bg-purple-50 flex flex-col justify-center relative pt-6">
+                <span class="absolute top-0 left-0 bg-purple-200 text-purple-800 text-xs px-2 py-1 rounded-br-lg font-bold">Bakul ${i + 1}</span>
+                <div class="flex flex-wrap justify-center gap-1">`;
+                for (let j = 0; j < size; j++) {
+                    groupHtml += '<div class="item-dot bg-purple-600"></div>';
+                }
+                groupHtml += '</div></div>';
+                visualEl.innerHTML += groupHtml;
+            }
+
+            document.getElementById('act3-summary').innerHTML = `
             <span class="text-slate-400 text-lg block mb-1">Kita dapat ${numGroups} bakul penuh.</span>
             <span class="text-purple-600 text-3xl">${total} ÷ ${size} = ${numGroups}</span>
         `;
-        speak(`Dapat ${numGroups} bakul.`);
-        triggerWin();
-    }
+            speak(`Dapat ${numGroups} bakul.`);
+            triggerWin();
+        }
 
-    /* 4. Katak (Garis Nombor - Darab) */
-    function loadLompatDarabActivity(content) {
-        setInfo("Set lompatan katak dan tekan 'Lompat!'");
-        
-        // Setup Garis Nombor
-        const maxNum = 30; 
-        let lineHtml = `<div class="number-line">`;
-        for (let i = 0; i <= maxNum; i++) { lineHtml += `<div class="tick"><span>${i}</span></div>`; }
-        lineHtml += '</div>';
+        /* 4. Katak (Garis Nombor - Darab) */
+        function loadLompatDarabActivity(content) {
+            setInfo("Set lompatan katak dan tekan 'Lompat!'");
 
-        content.innerHTML = `
-            <div class="w-full text-center">
-                <h3 class="text-3xl font-bold text-orange-500 mb-2">🐸 Katak Lompat (Darab)</h3>
+            // Setup Garis Nombor
+            const maxNum = 30;
+            let lineHtml = `<div class="number-line">`;
+            for (let i = 0; i <= maxNum; i++) { lineHtml += `<div class="tick"><span>${i}</span></div>`; }
+            lineHtml += '</div>';
+
+            content.innerHTML = `
+            <div class="w-full text-center flex flex-col h-full overflow-hidden">
+                <h3 class="text-xl font-bold text-orange-500 mb-2 flex-none">🐸 Katak Lompat (Darab)</h3>
                 
-                <div class="bg-orange-50 p-4 rounded-2xl border-2 border-orange-100 inline-flex flex-wrap gap-4 items-center justify-center mb-4 shadow-inner">
-                    <select id="act4-lompat" class="select-3d border-orange-300 text-orange-700"><option value="2">2 Lompatan</option><option value="3" selected>3 Lompatan</option><option value="4">4 Lompatan</option><option value="5">5 Lompatan</option></select>
-                    <span class="text-orange-400 font-bold">Saiz:</span>
-                    <select id="act4-saiz" class="select-3d border-orange-300 text-orange-700"><option value="2">2 Langkah</option><option value="3">3 Langkah</option><option value="4" selected>4 Langkah</option><option value="5">5 Langkah</option></select>
+                <div class="bg-orange-50 p-2 rounded-2xl border-2 border-orange-100 flex flex-wrap gap-2 items-center justify-center mb-2 shadow-inner flex-none">
+                    <select id="act4-lompat" class="select-3d border-orange-300 text-orange-700 text-sm py-1"><option value="2">2 Lompatan</option><option value="3" selected>3 Lompatan</option><option value="4">4 Lompatan</option><option value="5">5 Lompatan</option></select>
+                    <span class="text-orange-400 font-bold text-sm">Saiz:</span>
+                    <select id="act4-saiz" class="select-3d border-orange-300 text-orange-700 text-sm py-1"><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option></select>
                     
-                    <button onclick="runKatakLompat()" class="btn-3d bg-orange-500 text-white font-bold py-2 px-4 rounded-xl ml-2">Lompat! 🐸</button>
-                    <button onclick="resetKatak(true)" class="btn-3d bg-slate-400 text-white font-bold py-2 px-4 rounded-xl">Reset ↺</button>
+                    <button onclick="runKatakLompat()" class="btn-3d bg-orange-500 text-white font-bold py-2 px-4 rounded-xl ml-2 text-sm">Lompat! 🐸</button>
+                    <button onclick="resetKatak(true)" class="btn-3d bg-slate-400 text-white font-bold py-2 px-4 rounded-xl text-sm">Reset ↺</button>
                 </div>
 
-                <div class="w-full overflow-hidden border-y-2 border-slate-100 bg-white relative py-4 mb-4">
-                    <div id="nl-darab-container" class="number-line-container mx-auto">
+                <div class="w-full overflow-hidden border-y-2 border-slate-100 bg-white relative py-2 mb-2 flex-1 min-h-[120px] max-h-[160px]">
+                    <div id="nl-darab-container" class="number-line-container mx-auto h-full">
                         ${lineHtml}
                         <div id="nl-darab-arcs"></div>
-                        <div id="nl-katak-jumper" style="position: absolute; top: 25px; font-size: 2.5rem; transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); left: 20px; filter: drop-shadow(2px 4px 0 rgba(0,0,0,0.2));">🐸</div>
+                        <div id="nl-katak-jumper" style="position: absolute; top: 20px; font-size: 2rem; transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); left: 20px; filter: drop-shadow(2px 4px 0 rgba(0,0,0,0.2));">🐸</div>
                     </div>
                 </div>
 
-                <div id="act4-summary" class="text-2xl font-bold text-orange-600 min-h-[3rem]">0 x ? = 0</div>
+                <div id="act4-summary" class="text-lg font-bold text-orange-600 min-h-[2rem] flex-none">0 x ? = 0</div>
             </div>
         `;
-        resetKatak(false);
-    }
+            resetKatak(false);
+        }
 
-    function resetKatak(withSpeak) {
-        const lompatMax = parseInt(document.getElementById('act4-lompat').value);
-        const saiz = parseInt(document.getElementById('act4-saiz').value);
-        activityState = { pos: 0, count: 0, saiz: saiz, lompatMax: lompatMax };
-        
-        document.getElementById('nl-katak-jumper').style.left = '20px'; // Tick 0 offset
-        document.getElementById('nl-darab-arcs').innerHTML = '';
-        document.getElementById('act4-summary').textContent = `Sedia...`;
-        if(withSpeak) speak("Katak sedia untuk melompat.");
-    }
+        function resetKatak(withSpeak) {
+            const lompatMax = parseInt(document.getElementById('act4-lompat').value);
+            const saiz = parseInt(document.getElementById('act4-saiz').value);
+            activityState = { pos: 0, count: 0, saiz: saiz, lompatMax: lompatMax };
 
-    function runKatakLompat() {
-        const PIXELS_PER_UNIT = 30;
-        let { pos, count, saiz, lompatMax } = activityState;
+            document.getElementById('nl-katak-jumper').style.left = '20px'; // Tick 0 offset
+            document.getElementById('nl-darab-arcs').innerHTML = '';
+            document.getElementById('act4-summary').textContent = `Sedia...`;
+            if (withSpeak) speak("Katak sedia untuk melompat.");
+        }
 
-        if (count >= lompatMax) { speak("Katak dah penat. Tekan Reset."); return; }
+        function runKatakLompat() {
+            const PIXELS_PER_UNIT = 30;
+            let { pos, count, saiz, lompatMax } = activityState;
 
-        const countNew = count + 1;
-        const newPos = countNew * saiz;
-        const oldPos = pos;
+            if (count >= lompatMax) { speak("Katak dah penat. Tekan Reset."); return; }
 
-        // Gerak Katak
-        document.getElementById('nl-katak-jumper').style.left = (newPos * PIXELS_PER_UNIT) + 20 + 'px';
+            const countNew = count + 1;
+            const newPos = countNew * saiz;
+            const oldPos = pos;
 
-        // Lukis Lengkok
-        const arc = document.createElement('div');
-        arc.className = 'arc';
-        arc.style.left = (oldPos * PIXELS_PER_UNIT) + 35 + 'px'; // Adjust offset for styling
-        arc.style.width = (saiz * PIXELS_PER_UNIT) + 'px';
-        arc.style.height = (40 + count * 5) + 'px';
-        arc.innerHTML = `<span class="arc-label text-orange-600">+${saiz}</span>`;
-        document.getElementById('nl-darab-arcs').appendChild(arc);
+            // Gerak Katak
+            document.getElementById('nl-katak-jumper').style.left = (newPos * PIXELS_PER_UNIT) + 20 + 'px';
 
-        activityState = { pos: newPos, count: countNew, saiz: saiz, lompatMax: lompatMax };
-        document.getElementById('act4-summary').textContent = `${countNew} × ${saiz} = ${newPos}`;
-        speak(`${newPos}`);
-        
-        if(countNew === lompatMax) triggerWin();
-    }
+            // Lukis Lengkok
+            const arc = document.createElement('div');
+            arc.className = 'arc';
+            arc.style.left = (oldPos * PIXELS_PER_UNIT) + 35 + 'px'; // Adjust offset for styling
+            arc.style.width = (saiz * PIXELS_PER_UNIT) + 'px';
+            arc.style.height = (40 + count * 5) + 'px';
+            arc.innerHTML = `<span class="arc-label text-orange-600">+${saiz}</span>`;
+            document.getElementById('nl-darab-arcs').appendChild(arc);
 
-    /* 5. Cengkerik (Garis Nombor - Bahagi) */
-    function loadLompatBahagiActivity(content) {
-        setInfo("Lompat ke belakang sehingga sifar.");
-        
-        const maxNum = 30; 
-        let lineHtml = `<div class="number-line">`;
-        for (let i = 0; i <= maxNum; i++) { lineHtml += `<div class="tick"><span>${i}</span></div>`; }
-        lineHtml += '</div>';
+            activityState = { pos: newPos, count: countNew, saiz: saiz, lompatMax: lompatMax };
+            document.getElementById('act4-summary').textContent = `${countNew} × ${saiz} = ${newPos}`;
+            speak(`${newPos}`);
 
-        content.innerHTML = `
-            <div class="w-full text-center">
-                <h3 class="text-3xl font-bold text-rose-500 mb-2">🦗 Cengkerik (Bahagi)</h3>
+            if (countNew === lompatMax) triggerWin();
+        }
+
+        /* 5. Cengkerik (Garis Nombor - Bahagi) */
+        function loadLompatBahagiActivity(content) {
+            setInfo("Lompat ke belakang sehingga sifar.");
+
+            const maxNum = 30;
+            let lineHtml = `<div class="number-line">`;
+            for (let i = 0; i <= maxNum; i++) { lineHtml += `<div class="tick"><span>${i}</span></div>`; }
+            lineHtml += '</div>';
+
+            content.innerHTML = `
+            <div class="w-full text-center flex flex-col h-full overflow-hidden">
+                <h3 class="text-xl font-bold text-rose-500 mb-2 flex-none">🦗 Cengkerik (Bahagi)</h3>
                 
-                <div class="bg-rose-50 p-4 rounded-2xl border-2 border-rose-100 inline-flex flex-wrap gap-4 items-center justify-center mb-4 shadow-inner">
-                    <span class="text-rose-400 font-bold">Mula:</span>
-                    <select id="act5-mula" class="select-3d border-rose-300 text-rose-700"><option value="12" selected>12</option><option value="15">15</option><option value="18">18</option><option value="20">20</option></select>
-                    <span class="text-rose-400 font-bold">Lompat:</span>
-                    <select id="act5-saiz" class="select-3d border-rose-300 text-rose-700"><option value="2">2 Langkah</option><option value="3" selected>3 Langkah</option><option value="4">4 Langkah</option><option value="5">5 Langkah</option></select>
+                <div class="bg-rose-50 p-2 rounded-2xl border-2 border-rose-100 flex flex-wrap gap-2 items-center justify-center mb-2 shadow-inner flex-none">
+                    <span class="text-rose-400 font-bold text-sm">Mula:</span>
+                    <select id="act5-mula" class="select-3d border-rose-300 text-rose-700 text-sm py-1"><option value="12" selected>12</option><option value="15">15</option><option value="18">18</option><option value="20">20</option></select>
+                    <span class="text-rose-400 font-bold text-sm">Lompat:</span>
+                    <select id="act5-saiz" class="select-3d border-rose-300 text-rose-700 text-sm py-1"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option></select>
                     
-                    <button onclick="runCengkerikLompat()" class="btn-3d bg-rose-500 text-white font-bold py-2 px-4 rounded-xl ml-2">Lompat! 🦗</button>
-                    <button onclick="resetCengkerik(true)" class="btn-3d bg-slate-400 text-white font-bold py-2 px-4 rounded-xl">Reset ↺</button>
+                    <button onclick="runCengkerikLompat()" class="btn-3d bg-rose-500 text-white font-bold py-2 px-4 rounded-xl ml-2 text-sm">Lompat! 🦗</button>
+                    <button onclick="resetCengkerik(true)" class="btn-3d bg-slate-400 text-white font-bold py-2 px-4 rounded-xl text-sm">Reset ↺</button>
                 </div>
 
-                <div class="w-full overflow-hidden border-y-2 border-slate-100 bg-white relative py-4 mb-4">
-                    <div id="nl-bahagi-container" class="number-line-container mx-auto">
+                <div class="w-full overflow-hidden border-y-2 border-slate-100 bg-white relative py-2 mb-2 flex-1 min-h-[120px] max-h-[160px]">
+                    <div id="nl-bahagi-container" class="number-line-container mx-auto h-full">
                         ${lineHtml}
                         <div id="nl-bahagi-arcs"></div>
-                        <div id="nl-cengkerik-jumper" style="position: absolute; top: 25px; font-size: 2.5rem; transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); left: 20px; filter: drop-shadow(2px 4px 0 rgba(0,0,0,0.2));">🦗</div>
+                        <div id="nl-cengkerik-jumper" style="position: absolute; top: 20px; font-size: 2rem; transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); left: 20px; filter: drop-shadow(2px 4px 0 rgba(0,0,0,0.2));">🦗</div>
                     </div>
                 </div>
 
-                <div id="act5-summary" class="text-2xl font-bold text-rose-600 min-h-[3rem]">...</div>
+                <div id="act5-summary" class="text-lg font-bold text-rose-600 min-h-[2rem] flex-none">...</div>
             </div>
         `;
-        resetCengkerik(false);
-    }
-
-    function resetCengkerik(withSpeak) {
-        const mula = parseInt(document.getElementById('act5-mula').value);
-        const saiz = parseInt(document.getElementById('act5-saiz').value);
-        
-        if (mula % saiz !== 0) {
-            document.getElementById('act5-summary').innerHTML = `<span class="text-sm text-red-400">Baki wujud! Cengkerik tak boleh sampai 0.</span>`;
-            if(withSpeak) speak("Tak boleh sampai sifar. Tukar nombor.");
-            activityState = { error: true };
-            return;
+            resetCengkerik(false);
         }
 
-        const PIXELS_PER_UNIT = 30;
-        activityState = { pos: mula, count: 0, saiz: saiz, mula: mula, error: false };
-        
-        document.getElementById('nl-cengkerik-jumper').style.left = (mula * PIXELS_PER_UNIT) + 20 + 'px';
-        document.getElementById('nl-bahagi-arcs').innerHTML = '';
-        document.getElementById('act5-summary').textContent = `Mula di ${mula}...`;
-        if(withSpeak) speak(`Mula di ${mula}.`);
-    }
+        function resetCengkerik(withSpeak) {
+            const mula = parseInt(document.getElementById('act5-mula').value);
+            const saiz = parseInt(document.getElementById('act5-saiz').value);
 
-    function runCengkerikLompat() {
-        if (activityState.error) { speak("Sila Reset."); return; }
-        
-        const PIXELS_PER_UNIT = 30;
-        let { pos, count, saiz, mula } = activityState;
+            if (mula % saiz !== 0) {
+                document.getElementById('act5-summary').innerHTML = `<span class="text-sm text-red-400">Baki wujud! Cengkerik tak boleh sampai 0.</span>`;
+                if (withSpeak) speak("Tak boleh sampai sifar. Tukar nombor.");
+                activityState = { error: true };
+                return;
+            }
 
-        if (pos <= 0) { speak("Dah sampai."); return; }
+            const PIXELS_PER_UNIT = 30;
+            activityState = { pos: mula, count: 0, saiz: saiz, mula: mula, error: false };
 
-        const countNew = count + 1;
-        const newPos = pos - saiz;
-
-        // Gerak Cengkerik
-        document.getElementById('nl-cengkerik-jumper').style.left = (newPos * PIXELS_PER_UNIT) + 20 + 'px';
-
-        // Lukis Lengkok (Reverse)
-        const arc = document.createElement('div');
-        arc.className = 'arc bahagi'; // Merah
-        arc.style.left = (newPos * PIXELS_PER_UNIT) + 35 + 'px';
-        arc.style.width = (saiz * PIXELS_PER_UNIT) + 'px';
-        arc.style.height = (40 + count * 5) + 'px';
-        arc.innerHTML = `<span class="arc-label text-rose-600">-${saiz}</span>`;
-        document.getElementById('nl-bahagi-arcs').appendChild(arc);
-
-        activityState = { pos: newPos, count: countNew, saiz: saiz, mula: mula, error: false };
-        document.getElementById('act5-summary').textContent = `${countNew} lompatan. Kini di ${newPos}.`;
-        speak(`${newPos}`);
-
-        if (newPos === 0) {
-            document.getElementById('act5-summary').textContent = `Selesai! ${mula} ÷ ${saiz} = ${countNew}`;
-            triggerWin();
-            speak(`Jawapan ialah ${countNew}.`);
+            document.getElementById('nl-cengkerik-jumper').style.left = (mula * PIXELS_PER_UNIT) + 20 + 'px';
+            document.getElementById('nl-bahagi-arcs').innerHTML = '';
+            document.getElementById('act5-summary').textContent = `Mula di ${mula}...`;
+            if (withSpeak) speak(`Mula di ${mula}.`);
         }
-    }
 
-  </script>
+        function runCengkerikLompat() {
+            if (activityState.error) { speak("Sila Reset."); return; }
+
+            const PIXELS_PER_UNIT = 30;
+            let { pos, count, saiz, mula } = activityState;
+
+            if (pos <= 0) { speak("Dah sampai."); return; }
+
+            const countNew = count + 1;
+            const newPos = pos - saiz;
+
+            // Gerak Cengkerik
+            document.getElementById('nl-cengkerik-jumper').style.left = (newPos * PIXELS_PER_UNIT) + 20 + 'px';
+
+            // Lukis Lengkok (Reverse)
+            const arc = document.createElement('div');
+            arc.className = 'arc bahagi'; // Merah
+            arc.style.left = (newPos * PIXELS_PER_UNIT) + 35 + 'px';
+            arc.style.width = (saiz * PIXELS_PER_UNIT) + 'px';
+            arc.style.height = (40 + count * 5) + 'px';
+            arc.innerHTML = `<span class="arc-label text-rose-600">-${saiz}</span>`;
+            document.getElementById('nl-bahagi-arcs').appendChild(arc);
+
+            activityState = { pos: newPos, count: countNew, saiz: saiz, mula: mula, error: false };
+            document.getElementById('act5-summary').textContent = `${countNew} lompatan. Kini di ${newPos}.`;
+            speak(`${newPos}`);
+
+            if (newPos === 0) {
+                document.getElementById('act5-summary').textContent = `Selesai! ${mula} ÷ ${saiz} = ${countNew}`;
+                triggerWin();
+                speak(`Jawapan ialah ${countNew}.`);
+            }
+        }
+
+    </script>
 </body>
+
 </html>
